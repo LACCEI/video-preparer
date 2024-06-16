@@ -15,6 +15,16 @@
 #   issue hasn't been solved yet. However, resampling the videos with ffmpeg
 #   is believed to be a solution.
 
+# Issues that would/may still need a solution:
+# 1. Videos many times have different sizes. The moviepy module can handle
+#   those cases by using the size of the biggest video. However, there should
+#   be consistency through the videos. There should be a mechanisms that
+#   ensures the videos size even if all of them are different and not the
+#   standard with 16:9 ratio.
+# 2. The volume across videos has been a repeating issue through all the
+#   conferences. Ensure there is a mechanism that tries to keep the volume at
+#   the same level through the videos and among them.
+
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 def get_lowest_fps(videos: VideoFileClip):
