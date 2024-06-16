@@ -52,7 +52,7 @@ def concat_videos(videos, output):
 
 path = '../sample-data/'
 test_videos = []
-test_videos.append(path + 'Contribution_100_b.mp4')
-test_videos.append(path + 'Contribution_103_b.mp4')
+test_videos.append(path + 'Contribution_100_b_resampled.mp4')
+test_videos.append(path + 'Contribution_103_b_resampled.mp4')
 
-concat_videos(test_videos, path + 'output7.mp4')
+concat_videos(test_videos, path + 'output8.mp4')
