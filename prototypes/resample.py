@@ -1,6 +1,11 @@
 # This is a prototype program that takes a video a resamples it to 60 FPS. This
 # solution uses the ffmpeg program called using a Python subprocess.
 
+# Prototype report.
+# After creating this prototype and using the first prototyp "concat.py" to
+# concatenate the two new resampled videos, the output video was fixed.
+# Resampling worked.
+
 import subprocess
 from moviepy.editor import VideoFileClip
 
