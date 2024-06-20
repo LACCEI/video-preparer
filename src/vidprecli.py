@@ -1,0 +1,3 @@
+import vidpre
+
+vidpre.hello()
