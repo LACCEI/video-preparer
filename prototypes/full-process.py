@@ -8,9 +8,13 @@
 # 5. (Future version.) Creates the opening and closing info slides.
 # 6. (Future version.) Adds the intro audio to the opening slides.
 
+# A sample command to call this program is:
+# python full-process.py --working_dir ../sample-data Contribution_100_b.mp4 Contribution_103_b.mp4 output10.mp4 ../sample-data/temp
+
 import subprocess
 import argparse
 from moviepy.editor import VideoFileClip, concatenate_videoclips
+import moviepy.audio.fx.all as afx
 
 CONSTANT_FPS = 60
 
@@ -26,7 +30,7 @@ def resample_video(input_file: str, output_file: str, fps = CONSTANT_FPS):
   command = ["ffmpeg", "-i", input_file, "-c:v", "libx264", "-c:a", "aac", "-r", str(fps), output_file]
   subprocess.run(command, check=True)
 
-def concat_videos(videos: str, output: str, temp_folder: str):
+def concat_videos(videos: str, output: str, temp_folder: str = ""):
   """
   This function concatenates multiple video files into a single video file.
 
@@ -34,7 +38,7 @@ def concat_videos(videos: str, output: str, temp_folder: str):
       videos: List of paths to the input video files (list of strings).
       output: Path to the output concatenated video file (string).
   """
-  clips = [VideoFileClip(video) for video in videos]
+  clips = [VideoFileClip(temp_folder + video).fx(afx.audio_normalize) for video in videos]
   final_clip = concatenate_videoclips(clips, method="compose")
   final_clip.write_videofile(output, temp_audiofile='temp-audio.m4a',
     remove_temp=True, codec="libx264", audio_codec="aac", fps=CONSTANT_FPS)
@@ -43,7 +47,7 @@ def concat_videos(videos: str, output: str, temp_folder: str):
     clip.close()
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description="Video Preparer")
+  parser = argparse.ArgumentParser(description="LACCEI Video Preparer")
   parser.add_argument("input_files", nargs="+", help="Path to the input video files.")
   parser.add_argument("output_file", help="Path to the output concatenated video file.")
   parser.add_argument("temp_folder", help="Path to the temporary working directory.")
@@ -51,12 +55,12 @@ if __name__ == "__main__":
   parser.add_argument("--fps", type=int, default=CONSTANT_FPS, help="Desired frame rate (default: 60)")
   args = parser.parse_args()
 
+  working_dir = args.working_dir + "/" if args.working_dir else None
+
   input_files = args.input_files
-  output_file = args.output_file
-  temp_folder = args.temp_folder
+  output_file = working_dir + args.output_file if working_dir else args.output_file
+  temp_folder = args.temp_folder + "/"
   fps = args.fps
-  
-  working_dir = args.working_dir if args.working_dir else None
 
   # Call the functions with the provided arguments
   for input_file in input_files:
