@@ -2,3 +2,4 @@
 venv/
 sample-data/
 /design/*.bkp
+__pycache__/
