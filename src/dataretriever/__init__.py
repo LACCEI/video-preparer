@@ -1,6 +1,8 @@
 import hashlib
 import time
 import requests
+import os
+import xml.etree.ElementTree as ET
 
 class Utils:
   @staticmethod
@@ -36,10 +38,38 @@ class Utils:
   ) -> None:
     with open(output_file, "wb") as file:
       file.write(response.content)
-    # Vulnerabilities:
-    # path-injection: The output_file parameter is directly used
-    # to create a file on the system. An attacker could provide a
-    # malicious path to overwrite arbitrary files.
+
+class UtilConferenceData:
+  def __init__(self):
+    self.sessions = {}
+
+  @staticmethod
+  def paper_sort_key(paper: dict) -> int:
+    return paper["order"]
+
+  def add_session(self, session_data: dict) -> None:
+    if session_data["session_id"] not in self.sessions:
+      self.sessions[session_data["session_id"]] = {
+        "session_title": session_data["session_title"],
+        "presentation_start": session_data["presentation_start"],
+        "presentation_end": session_data["presentation_end"],
+        "papers": []
+      }
+    
+    self.sessions[session_data["session_id"]]["papers"].append({
+      "order": session_data["order"],
+      "paper_id": session_data["paper_id"]
+    })
+  
+  def sort_papers(self) -> None:
+    for session_id in self.sessions:
+      self.sessions[session_id]["papers"].sort(
+        key = UtilConferenceData.paper_sort_key
+      )
+  
+  def get_schedule(self) -> dict:
+    self.sort_papers()
+    return self.sessions
 
 class CTInterface:
   def __init__(self, conference_endpoint: str, ct_password: str):
@@ -52,7 +82,7 @@ class CTInterface:
     export_select: str = "users",
     format: str = "xml",
     form_export_x_options: dict = {}
-  ):
+  ) -> None:
     resp = Utils.send_get_request(self.endpoint, {
       "page": "adminExport",
       "export_select": export_select,
@@ -63,3 +93,37 @@ class CTInterface:
       **form_export_x_options
     }, self.password)
     Utils.save_file_from_response(resp, output_file)
+
+  def get_schedule(
+    self,
+    temp_papers_file: str
+  ) -> None:
+    if not os.path.exists(temp_papers_file):
+      self.get_data(
+        temp_papers_file,
+        export_select = "papers",
+        form_export_x_options = {
+          # "form_export_papers_options[]": ["session", "downloads"]
+          "form_export_papers_options[]": ["session"]
+        }
+      )
+    papers_tree = ET.parse(temp_papers_file)
+    papers_node = papers_tree.getroot()
+
+    sessions_data = UtilConferenceData()
+
+    for paper in papers_node:
+      acceptance = paper.find('acceptance').text
+      if acceptance == 'Accepted (V)':
+        paper_data = {
+          "paper_id": paper.find("paperID").text,
+          "session_id": paper.find("session_ID").text,
+          "session_title": paper.find("session_title").text,
+          "presentation_start": paper.find("presentation_start").text,
+          "presentation_end": paper.find("presentation_end").text,
+          "order": paper.find("session_numberInSession").text
+        }
+
+        sessions_data.add_session(paper_data)
+    
+    return sessions_data.get_schedule()
