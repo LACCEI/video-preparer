@@ -51,6 +51,7 @@ class CTInterface:
     output_file: str,
     export_select: str = "users",
     format: str = "xml",
+    form_export_x_options: dict = {}
   ):
     resp = Utils.send_get_request(self.endpoint, {
       "page": "adminExport",
@@ -58,6 +59,7 @@ class CTInterface:
       "form_include_deleted": 0,
       "form_export_format": format,
       "form_export_header": "default",
-      "cmd_create_export": "true"
+      "cmd_create_export": "true",
+      **form_export_x_options
     }, self.password)
     Utils.save_file_from_response(resp, output_file)
