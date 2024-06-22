@@ -4,6 +4,8 @@ import requests
 import os
 import xml.etree.ElementTree as ET
 
+from typing import Callable
+
 class Utils:
   @staticmethod
   def generate_passhash(nonce: str, password: str) -> str:
@@ -133,7 +135,7 @@ class CTInterface:
     self,
     submission_id: int,
     output_filename: str
-  ) -> tuple[bool, requests.Response]:
+  ) -> bool:
     resp = Utils.send_get_request(self.endpoint, {
       "page": "downloadPaper",
       "form_id": submission_id,
@@ -145,5 +147,29 @@ class CTInterface:
       resp.headers["Content-Type"] == "video/mp4"
     ):
       Utils.save_file_from_response(resp, output_filename)
-      return (True, resp)
-    return (False, resp)
+      return True
+    return False
+
+  def get_session_videos(
+    self,
+    session: dict,
+    output_folder: str,
+    callback: Callable[[int, requests.Response|str], None] = None
+  ) -> tuple[int, list[str]]:
+    os.makedirs(output_folder, exist_ok=True)
+    failed_log = []
+    failed = 0
+    count = 0
+
+    for paper in session['papers']:
+      resp = self.get_video(
+        paper['paper_id'],
+        os.path.join(output_folder, paper['paper_id'] + '.mp4')
+      )
+
+      failed_log.append(paper['paper_id']) if not resp else None
+      failed += 0 if resp else 1
+      callback(count, resp) if callback else None
+      count += 1
+    
+    return (failed, failed_log)
