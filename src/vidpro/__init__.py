@@ -1,9 +1,10 @@
 import subprocess
 import argparse
-from moviepy.editor import *
-from datetime import datetime
 import pytz
 import moviepy.audio.fx.all as afx
+
+from moviepy.editor import *
+from datetime import datetime
 
 CONSTANT_FPS = 60
 
@@ -72,6 +73,11 @@ class Utils:
   def get_ratio(original: int, target: int) -> float:
     return target / original
 
+def resample_video(input_file: str, output_file: str, fps = CONSTANT_FPS):
+  command = ["ffmpeg", "-i", input_file, "-c:v", "libx264",
+  "-c:a", "aac", "-r", str(fps), output_file]
+  subprocess.run(command, check=True)
+
 def create_instructions_clip(
   duration: int,
   text: str,
@@ -79,7 +85,7 @@ def create_instructions_clip(
 ) -> CompositeVideoClip:
   background = ColorClip(size=(1920, 1080), color=[255, 255, 255])
   banner_clip = ImageClip(banner_img)
-  banner_clip = banner_clip.resize(get_ratio(banner_clip.size[0], 1880))
+  banner_clip = banner_clip.resize(Utils.get_ratio(banner_clip.size[0], 1880))
   instruction = TextClip(text, fontsize=48, color='black', align='center')
   return CompositeVideoClip([
     background.set_duration(duration),
@@ -94,9 +100,9 @@ def create_session_clip(
 ) -> CompositeVideoClip:
   background = ColorClip(size=(1920, 1080), color=[255, 255, 255])
   banner_clip = ImageClip(banner_img)
-  banner_clip = banner_clip.resize(get_ratio(banner_clip.size[0], 1880))
+  banner_clip = banner_clip.resize(Utils.get_ratio(banner_clip.size[0], 1880))
   text = "Session: " + session_information["Title"] + "\n"
-  text += "Date: " + convert_date_format(session_information["Date"]) + "\n\n"
+  text += "Date: " + session_information["Date"] + "\n\n"
   for time in session_information["Times"]:
     text += time["Timezone"] + ": "
     text += time["Start"] + "-"
@@ -113,7 +119,6 @@ def concat_videos(
     output: str,
     intro_music: AudioFileClip
   ) -> None:
-  
   final_clip = concatenate_videoclips(videos, method="compose")
   final_clip = final_clip.set_audio(intro_music)
   final_clip.write_videofile(
@@ -125,9 +130,49 @@ def concat_videos(
 def prepare_video_for_session(
   session_info: dict,
   times_info: dict,
+  opening_instructions: str,
+  closing_instructions: str,
   path_to_videos_folder: str,
   output_video_path: str,
   path_to_banner_image: str,
-  path_to_intro_audio: str
-):
-  pass
+  path_to_intro_audio: str,
+  fps: int = CONSTANT_FPS
+) -> None:
+  session_information_slide = Utils.prepare_session_information(
+    session_info, times_info
+  )
+
+  opening_clip = create_instructions_clip(
+    10, opening_instructions, path_to_banner_image
+  )
+
+  session_clip = create_session_clip(
+    10, session_information_slide, path_to_banner_image
+  )
+
+  closing_clip = create_instructions_clip(
+    10, closing_instructions, path_to_banner_image
+  )
+
+  intro_music = AudioFileClip(path_to_intro_audio).subclip(0, 20)
+  intro_music = intro_music.fx(afx.audio_normalize).audio_fadein(4).audio_fadeout(2)
+
+  videos_clips = []
+  for paper in session_info['papers']:
+    if not os.path.exists(os.path.join(path_to_videos_folder, paper['paper_id'] + '-resampled.mp4')):
+      resample_video(
+        os.path.join(path_to_videos_folder, paper['paper_id'] + '.mp4'),
+        os.path.join(path_to_videos_folder, paper['paper_id'] + '-resampled.mp4'),
+        fps
+      )
+    
+    video_clip = VideoFileClip(
+      os.path.join(path_to_videos_folder, paper['paper_id'] + '-resampled.mp4')
+    ).fx(afx.audio_normalize)
+    videos_clips.append(video_clip)
+  
+  concat_videos(
+    [opening_clip, session_clip] + videos_clips + [closing_clip],
+    output_video_path,
+    intro_music
+  )
