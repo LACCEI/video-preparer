@@ -13,7 +13,7 @@ class Utils:
   @staticmethod
   def get_videos(
     session: dict, temp_work_dir: str, ct_int: dataretriever.CTInterface
-  ):
+  ) -> tuple[list, list]:
     result = ct_int.get_session_videos(
       session,
       temp_work_dir
@@ -24,7 +24,7 @@ class Utils:
       result[1]
     )
 
-    return successful_list
+    return (successful_list, result[1])
 
   @staticmethod
   def log_to_file(message: str, log_file: str) -> None:
@@ -52,9 +52,16 @@ def prepare_videos_for_conference(
     
     try:
       print("Downloading videos.") # FIXME
-      schedule[session_id]['papers'] = Utils.get_videos(
+      schedule[session_id]['papers'], not_downloaded = Utils.get_videos(
         schedule[session_id], temp_work_dir, ct_int
       )
+
+      if len(not_downloaded) > 0:
+        print("Some videos could not be downloaded.") # FIXME
+        Utils.log_to_file(
+          f"Videos not downloaded for session {session_id}: {not_downloaded}",
+          os.path.join(output_video_path, 'error-log.txt')
+        )
 
       print("Preparing video.") # FIXME
       vidpro.prepare_video_for_session(
@@ -68,11 +75,13 @@ def prepare_videos_for_conference(
         slides_instructions['path_to_intro_audio']
       )
 
+      print("Cleaning up files.") # FIXME
+      for paper in schedule[session_id]['papers']:
+        os.remove(os.path.join(temp_work_dir, paper['paper_id'] + '-resampled.mp4'))
+        os.remove(os.path.join(temp_work_dir, paper['paper_id'] + '.mp4'))
+
     except Exception as e:
       Utils.log_to_file(
         f"Error processing session {session_id}: {str(e)}",
         os.path.join(output_video_path, 'error-log.txt')
       )
-
-
-  
