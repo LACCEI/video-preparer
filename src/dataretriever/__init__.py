@@ -134,8 +134,11 @@ class CTInterface:
   def get_video(
     self,
     submission_id: int,
-    output_filename: str
+    output_filename: str,
+    refresh: bool = False
   ) -> bool:
+    if os.path.exists(output_filename) and not refresh:
+      return True
     resp = Utils.send_get_request(self.endpoint, {
       "page": "downloadPaper",
       "form_id": submission_id,
