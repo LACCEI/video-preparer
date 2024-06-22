@@ -96,9 +96,10 @@ class CTInterface:
 
   def get_schedule(
     self,
-    temp_papers_file: str
+    temp_papers_file: str,
+    refresh: bool = False
   ) -> None:
-    if not os.path.exists(temp_papers_file):
+    if not os.path.exists(temp_papers_file) and not refresh:
       self.get_data(
         temp_papers_file,
         export_select = "papers",
@@ -127,3 +128,22 @@ class CTInterface:
         sessions_data.add_session(paper_data)
     
     return sessions_data.get_schedule()
+  
+  def get_video(
+    self,
+    submission_id: int,
+    output_filename: str
+  ) -> tuple[bool, requests.Response]:
+    resp = Utils.send_get_request(self.endpoint, {
+      "page": "downloadPaper",
+      "form_id": submission_id,
+      "form_index": 2,
+      "form_version": "final"
+    }, self.password)
+    if (
+      resp.status_code == 200 and 
+      resp.headers["Content-Type"] == "video/mp4"
+    ):
+      Utils.save_file_from_response(resp, output_filename)
+      return (True, resp)
+    return (False, resp)
