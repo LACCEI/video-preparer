@@ -1,3 +1,1 @@
 import vidpre
-
-vidpre.hello()
