@@ -51,8 +51,8 @@ class UtilConferenceData:
     if session_data["session_id"] not in self.sessions:
       self.sessions[session_data["session_id"]] = {
         "session_title": session_data["session_title"],
-        "presentation_start": session_data["presentation_start"],
-        "presentation_end": session_data["presentation_end"],
+        "session_start": session_data["session_start"],
+        "session_end": session_data["session_end"],
         "papers": []
       }
     
@@ -119,8 +119,8 @@ class CTInterface:
           "paper_id": paper.find("paperID").text,
           "session_id": paper.find("session_ID").text,
           "session_title": paper.find("session_title").text,
-          "presentation_start": paper.find("presentation_start").text,
-          "presentation_end": paper.find("presentation_end").text,
+          "session_start": paper.find("session_start").text,
+          "session_end": paper.find("session_end").text,
           "order": paper.find("session_numberInSession").text
         }
 
