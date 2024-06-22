@@ -75,6 +75,14 @@ instructions += "Please use the chat to ask questions, and keep in mind\n"
 instructions += "that the session is being recorded. Enjoy!"
 video_ins3 = create_instructions_clip(10, instructions, image_path)
 
-output_path = current_path + '/../sample-data/session_sample.mp4'
-output_video = concatenate_videoclips([video_ins1, video_ins2, video_ins3], method="compose")
-output_video.write_videofile(output_path, fps=60)
+output_path = os.path.abspath(current_path + '/../sample-data/session_sample.mp4')
+
+audio_clip = AudioFileClip(os.path.abspath(current_path + '/../sample-data/intro-audio.m4a'))
+audio_clip = audio_clip.subclip(0, 20).fx(afx.audio_normalize).audio_fadein(4).audio_fadeout(2)
+
+output_video = concatenate_videoclips([video_ins2, video_ins3, video_ins1], method="compose").set_audio(audio_clip)
+output_video.write_videofile(
+    output_path, temp_audiofile='temp-audio.m4a',
+    remove_temp=True, codec="libx264", audio_codec="aac",
+    fps=60
+  )
