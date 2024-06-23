@@ -7,7 +7,7 @@ from moviepy.editor import *
 from datetime import datetime
 import multiprocessing
 
-CONSTANT_FPS = 60
+CONSTANT_FPS = 24
 
 class Utils:
   @staticmethod
@@ -74,6 +74,13 @@ class Utils:
   def get_ratio(original: int, target: int) -> float:
     return target / original
 
+  @staticmethod
+  def convert_seconds_to_time(seconds: float) -> str:
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
+    return f"{hours:d}:{minutes:02d}:{seconds:02d}"
+
 def resample_video(input_file: str, output_file: str, fps = CONSTANT_FPS):
   command = ["ffmpeg", "-i", input_file, "-c:v", "libx264",
   "-c:a", "aac", "-r", str(fps), output_file]
@@ -117,9 +124,10 @@ def create_session_clip(
 
 def concat_videos(
     videos: list[VideoClip|CompositeVideoClip],
-    output: str
+    output: str,
+    get_final_duration: bool = False,
     # intro_music: AudioFileClip
-  ) -> None:
+  ) -> None|float:
   final_clip = concatenate_videoclips(videos, method="compose")
   # final_clip = final_clip.set_audio(intro_music)
   final_clip.write_videofile(
@@ -128,6 +136,8 @@ def concat_videos(
     preset = 'ultrafast',
     threads = multiprocessing.cpu_count(), fps=CONSTANT_FPS
   ) # FIXME: Give the option to change the fps and threads.
+  if get_final_duration:
+    return final_clip.duration
 
 def prepare_video_for_session(
   session_info: dict,
@@ -138,8 +148,9 @@ def prepare_video_for_session(
   output_video_path: str,
   path_to_banner_image: str,
   path_to_intro_audio: str,
+  log_times: bool = False,
   fps: int = CONSTANT_FPS
-) -> None:
+) -> None|dict:
   session_information_slide = Utils.prepare_session_information(
     session_info, times_info
   )
@@ -177,7 +188,37 @@ def prepare_video_for_session(
   intro_video = concatenate_videoclips([opening_clip, session_clip], method="compose")
   intro_video = intro_video.set_audio(intro_music)
 
-  concat_videos(
+  duration = concat_videos(
     [intro_video] + videos_clips + [closing_clip],
     output_video_path
   )
+
+  if log_times:
+    times_log = {
+      'session_title': session_info['session_title'],
+      'session_duration': Utils.convert_seconds_to_time(duration),
+      'videos': [
+        {
+          'title': 'Opening Instruction',
+          'duration': '00:00:10'
+        },
+        {
+          'title': 'Session Information',
+          'duration': '00:00:10'
+        }
+      ]
+    }
+
+    times_log['videos'] += [
+      Utils.convert_seconds_to_time(video.duration) 
+      for video in videos_clips
+    ]
+
+    times_log['videos'] += [
+      {
+        'title': 'Closing Instruction',
+        'duration': '00:00:10'
+      }
+    ]
+
+    return times_log

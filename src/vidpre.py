@@ -31,6 +31,11 @@ class Utils:
     with open(log_file, "a") as file:
       file.write(message + "\n")
 
+  @staticmethod
+  def update_json_log_file(data: dict, log_file: str) -> None:
+    with open(log_file, "w") as file:
+      file.write(json.dumps(data, indent=2))
+
 
 def prepare_videos_for_conference(
   conference_endpoint: str,
@@ -45,6 +50,12 @@ def prepare_videos_for_conference(
   schedule = ct_int.get_schedule(schedule_file, refresh_schedule)
   total_sesions = len(schedule.keys())
   session_i = 0
+
+  total_durations = {
+    'description': 'Total duration of all sessions and their videos.',
+    'total_sessions': 0,
+    'sessions': []
+  }
   
   for session_id in schedule:
     session_i += 1
@@ -68,7 +79,7 @@ def prepare_videos_for_conference(
         )
 
       print("Preparing video.") # FIXME
-      vidpro.prepare_video_for_session(
+      session_durations = vidpro.prepare_video_for_session(
         schedule[session_id],
         slides_instructions['times_info'],
         slides_instructions['opening_instructions'],
@@ -76,8 +87,12 @@ def prepare_videos_for_conference(
         temp_work_dir,
         os.path.join(output_video_path, schedule[session_id]['session_title'] + '.mp4'),
         slides_instructions['path_to_banner_image'],
-        slides_instructions['path_to_intro_audio']
+        slides_instructions['path_to_intro_audio'],
+        True
       )
+
+      total_durations['sessions'].append(session_durations)
+      Utils.update_json_log_file(total_durations, os.path.join(output_video_path, 'total-durations.json'))
 
       print("Cleaning up files.") # FIXME
       for paper in schedule[session_id]['papers']:
