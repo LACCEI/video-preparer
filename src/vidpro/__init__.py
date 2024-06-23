@@ -5,6 +5,7 @@ import moviepy.audio.fx.all as afx
 
 from moviepy.editor import *
 from datetime import datetime
+import multiprocessing
 
 CONSTANT_FPS = 60
 
@@ -116,16 +117,17 @@ def create_session_clip(
 
 def concat_videos(
     videos: list[VideoClip|CompositeVideoClip],
-    output: str,
-    intro_music: AudioFileClip
+    output: str
+    # intro_music: AudioFileClip
   ) -> None:
   final_clip = concatenate_videoclips(videos, method="compose")
-  final_clip = final_clip.set_audio(intro_music)
+  # final_clip = final_clip.set_audio(intro_music)
   final_clip.write_videofile(
     output, temp_audiofile='temp-audio.m4a',
     remove_temp=True, codec="libx264", audio_codec="aac",
-    fps=CONSTANT_FPS
-  )
+    preset = 'ultrafast',
+    threads = multiprocessing.cpu_count(), fps=CONSTANT_FPS
+  ) # FIXME: Give the option to change the fps and threads.
 
 def prepare_video_for_session(
   session_info: dict,
@@ -170,9 +172,12 @@ def prepare_video_for_session(
       os.path.join(path_to_videos_folder, paper['paper_id'] + '-resampled.mp4')
     ).fx(afx.audio_normalize)
     videos_clips.append(video_clip)
-  
+
+  # FIXME: Opportunity for refactoring. Separation of reponsibilities.
+  intro_video = concatenate_videoclips([opening_clip, session_clip], method="compose")
+  intro_video = intro_video.set_audio(intro_music)
+
   concat_videos(
-    [opening_clip, session_clip] + videos_clips + [closing_clip],
-    output_video_path,
-    intro_music
+    [intro_video] + videos_clips + [closing_clip],
+    output_video_path
   )

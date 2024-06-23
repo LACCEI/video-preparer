@@ -49,6 +49,10 @@ def prepare_videos_for_conference(
   for session_id in schedule:
     session_i += 1
     print(f"Processing session {session_i} of {total_sesions}.") # FIXME
+
+    if os.path.exists(os.path.join(output_video_path, schedule[session_id]['session_title'] + '.mp4')):
+      print(f"Video {schedule[session_id]['session_title']} already exists.")
+      continue
     
     try:
       print("Downloading videos.") # FIXME
