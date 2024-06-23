@@ -1,3 +1,4 @@
+import os
 import subprocess
 import argparse
 import pytz
@@ -80,6 +81,32 @@ class Utils:
     minutes = int((seconds % 3600) // 60)
     seconds = int(seconds % 60)
     return f"{hours:d}:{minutes:02d}:{seconds:02d}"
+
+  @staticmethod
+  def get_largest_dimension(list_of_sizes: list[list[int, int]]) -> list[int, int]:
+    max_width = 0
+    max_height = 0
+
+    for size in list_of_sizes:
+      if size[0] > max_width:
+        max_width = size[0]
+      if size[1] > max_height:
+        max_height = size[1]
+
+    return [max_width, max_height]
+
+  @staticmethod
+  def get_resize_ratio_to_fit_max_dimension(
+    original_size: list[int, int],
+    max_dimension: list[int, int]
+  ) -> float:
+    smallest_width_difference = max_dimension[0] - original_size[0]
+    smallest_height_difference = max_dimension[1] - original_size[1]
+
+    if smallest_height_difference > smallest_width_difference:
+      return max_dimension[0] / original_size[0]
+    else:
+      return max_dimension[1] / original_size[1]
 
 def resample_video(input_file: str, output_file: str, fps = CONSTANT_FPS):
   command = ["ffmpeg", "-i", input_file, "-c:v", "libx264",
@@ -171,6 +198,7 @@ def prepare_video_for_session(
   intro_music = intro_music.fx(afx.audio_normalize).audio_fadein(4).audio_fadeout(2)
 
   videos_clips = []
+  video_titles = []
   for paper in session_info['papers']:
     if not os.path.exists(os.path.join(path_to_videos_folder, paper['paper_id'] + '-resampled.mp4')):
       resample_video(
@@ -183,14 +211,38 @@ def prepare_video_for_session(
       os.path.join(path_to_videos_folder, paper['paper_id'] + '-resampled.mp4')
     ).fx(afx.audio_normalize)
     videos_clips.append(video_clip)
+    video_titles.append('Video ' + paper['paper_id'])
+
+  largest_sizes = Utils.get_largest_dimension(
+    [video.size for video in videos_clips]
+  )
+
+  for i in range(len(videos_clips)):
+    videos_clips[i] = videos_clips[i].resize(
+      Utils.get_resize_ratio_to_fit_max_dimension(
+        videos_clips[i].size, largest_sizes
+      )
+    )
 
   # FIXME: Opportunity for refactoring. Separation of reponsibilities.
   intro_video = concatenate_videoclips([opening_clip, session_clip], method="compose")
   intro_video = intro_video.set_audio(intro_music)
+  intro_video = intro_video.resize(
+    Utils.get_resize_ratio_to_fit_max_dimension(
+      intro_video.size, largest_sizes
+    )
+  )
+
+  closing_clip = closing_clip.resize(
+    Utils.get_resize_ratio_to_fit_max_dimension(
+      closing_clip.size, largest_sizes
+    )
+  )
 
   duration = concat_videos(
     [intro_video] + videos_clips + [closing_clip],
-    output_video_path
+    output_video_path,
+    True
   )
 
   if log_times:
@@ -210,8 +262,11 @@ def prepare_video_for_session(
     }
 
     times_log['videos'] += [
-      Utils.convert_seconds_to_time(video.duration) 
-      for video in videos_clips
+      {
+        'title': video_titles[video_i],
+        'duration': Utils.convert_seconds_to_time(videos_clips[video_i].duration)
+      }
+      for video_i in range(len(videos_clips))
     ]
 
     times_log['videos'] += [

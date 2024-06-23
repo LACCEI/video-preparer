@@ -1,6 +1,7 @@
 import dataretriever
 import vidpro
 import os
+import json
 
 class Utils:
   @staticmethod
@@ -91,8 +92,9 @@ def prepare_videos_for_conference(
         True
       )
 
-      total_durations['sessions'].append(session_durations)
-      Utils.update_json_log_file(total_durations, os.path.join(output_video_path, 'total-durations.json'))
+      if session_durations is not None:
+        total_durations['sessions'].append(session_durations)
+        Utils.update_json_log_file(total_durations, os.path.join(output_video_path, 'total-durations.json'))
 
       print("Cleaning up files.") # FIXME
       for paper in schedule[session_id]['papers']:
