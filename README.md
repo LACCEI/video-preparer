@@ -30,6 +30,16 @@ sudo apt install ffmpeg imagemagick
 
 Read the projects' sites to install in other systems (e.g., Windows).
 
+#### Debugging
+There is also an issue when running the program with a fresh installation of ImageMagick in Linux. You must edit the policy to create PDF files in `/etc/ImageMagick-6/policy.xml`. Change the line
+```xml
+<policy domain="coder" rights="none" pattern="PDF" />
+```
+to
+```xml
+<policy domain="coder" rights="read|write" pattern="PDF" />
+```
+
 ### Installation
 
 This project relies heavily in [MoviePy](https://zulko.github.io/moviepy/) and ffmpeg. ImageMagick is required to create the instruction slides.
