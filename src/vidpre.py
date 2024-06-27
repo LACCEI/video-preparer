@@ -75,7 +75,7 @@ def prepare_videos_for_conference(
       if len(not_downloaded) > 0:
         print("Some videos could not be downloaded.") # FIXME
         Utils.log_to_file(
-          f"Videos not downloaded for session {session_id}: {not_downloaded}",
+          f"Videos not downloaded for session {schedule[session_id]['session_title']}: {not_downloaded}",
           os.path.join(output_video_path, 'error-log.txt')
         )
 
@@ -103,6 +103,6 @@ def prepare_videos_for_conference(
 
     except Exception as e:
       Utils.log_to_file(
-        f"Error processing session {session_id}: {str(e)}",
+        f"Error processing session {schedule[session_id]['session_title']}: {str(e)}",
         os.path.join(output_video_path, 'error-log.txt')
       )
