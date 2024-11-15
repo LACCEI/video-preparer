@@ -40,6 +40,15 @@ to
 <policy domain="coder" rights="read|write" pattern="PDF" />
 ```
 
+Similarly, chage the line
+```xml
+<policy domain="path" rights="none" pattern="@*" />
+```
+to
+```xml
+<policy domain="path" rights="read|write" pattern="@*" />
+```
+
 ### Installation
 
 This project relies heavily in [MoviePy](https://zulko.github.io/moviepy/) and ffmpeg. ImageMagick is required to create the instruction slides.
