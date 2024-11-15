@@ -247,7 +247,7 @@ def prepare_video_for_session(
 
   if log_times:
     times_log = {
-      'session_title': session_info['session_title'],
+      'session_title': session_info['session_short'],
       'session_duration': Utils.convert_seconds_to_time(duration),
       'videos': [
         {
