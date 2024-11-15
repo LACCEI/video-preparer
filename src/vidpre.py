@@ -86,7 +86,7 @@ def prepare_videos_for_conference(
         slides_instructions['opening_instructions'],
         slides_instructions['closing_instructions'],
         temp_work_dir,
-        os.path.join(output_video_path, schedule[session_id]['session_id'] + ' ' + schedule[session_id]['session_title'] + '.mp4'),
+        os.path.join(output_video_path, session_id + ' ' + schedule[session_id]['session_title'] + '.mp4'),
         slides_instructions['path_to_banner_image'],
         slides_instructions['path_to_intro_audio'],
         True

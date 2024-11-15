@@ -52,6 +52,7 @@ class UtilConferenceData:
   def add_session(self, session_data: dict) -> None:
     if session_data["session_id"] not in self.sessions:
       self.sessions[session_data["session_id"]] = {
+        "session_short": session_data["session_short"],
         "session_title": session_data["session_title"],
         "session_start": session_data["session_start"],
         "session_end": session_data["session_end"],
@@ -121,6 +122,7 @@ class CTInterface:
         paper_data = {
           "paper_id": paper.find("paperID").text,
           "session_id": paper.find("session_ID").text,
+          "session_short": paper.find("session_short").text,
           "session_title": paper.find("session_title").text,
           "session_start": paper.find("session_start").text,
           "session_end": paper.find("session_end").text,
