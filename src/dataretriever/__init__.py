@@ -117,7 +117,7 @@ class CTInterface:
 
     for paper in papers_node:
       acceptance = paper.find('acceptance').text
-      if acceptance == 'Accepted (V)':
+      if acceptance == 'Accepted': # FIXME: Fields do not always have the same title.
         paper_data = {
           "paper_id": paper.find("paperID").text,
           "session_id": paper.find("session_ID").text,

@@ -17,7 +17,7 @@ class Utils:
     times_info: dict
   ) -> dict:
     result = {
-      'Title': session_info['session_title'],
+      'Title': session_info['session_short'], # FIXME: Should all these values be selectable?
       'Date': Utils.convert_date_format(session_info['session_start']),
       'Times': []
     }
