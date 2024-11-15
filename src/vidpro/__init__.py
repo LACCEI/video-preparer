@@ -225,7 +225,7 @@ def prepare_video_for_session(
     )
 
   # FIXME: Opportunity for refactoring. Separation of reponsibilities.
-  intro_video = concatenate_videoclips([opening_clip, session_clip], method="compose")
+  intro_video = concatenate_videoclips([session_clip, opening_clip], method="compose")
   intro_video = intro_video.set_audio(intro_music)
   intro_video = intro_video.resize(
     Utils.get_resize_ratio_to_fit_max_dimension(
