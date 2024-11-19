@@ -117,8 +117,8 @@ class CTInterface:
     sessions_data = UtilConferenceData()
 
     for paper in papers_node:
-      acceptance = paper.find('acceptance').text
-      if acceptance == 'Accepted': # FIXME: Fields do not always have the same title.
+      session_short = paper.find('session_short').text
+      if session_short != None: # FIXME: Currently ignoring papers without session.
         paper_data = {
           "paper_id": paper.find("paperID").text,
           "session_id": paper.find("session_ID").text,
