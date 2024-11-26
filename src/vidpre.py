@@ -63,7 +63,7 @@ def prepare_videos_for_conference(
     print(f"Processing session {session_i} of {total_sesions}.") # FIXME
 
     if os.path.exists(os.path.join(output_video_path, schedule[session_id]['session_short'] + '.mp4')):
-      print(f"Video {schedule[session_id]['session_title']} already exists.")
+      print(f"Video {schedule[session_id]['session_short']} already exists.")
       continue
     
     try:
@@ -75,7 +75,7 @@ def prepare_videos_for_conference(
       if len(not_downloaded) > 0:
         print("Some videos could not be downloaded.") # FIXME
         Utils.log_to_file(
-          f"Videos not downloaded for session {schedule[session_id]['session_title']}: {not_downloaded}",
+          f"Videos not downloaded for session {schedule[session_id]['session_short']}: {not_downloaded}",
           os.path.join(output_video_path, 'error-log.txt')
         )
 
