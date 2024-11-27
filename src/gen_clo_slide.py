@@ -49,27 +49,27 @@ out_work_dir = os.path.abspath(current_dir + '/../sample-data/output')
 temp_work_dir = os.path.abspath(current_dir + '/../sample-data/temp')
 schedule_file = os.path.abspath(current_dir + '/../sample-data/schedule-temp.xml')
 
-# clip = vidpro.create_instructions_clip(10, slides_instructions['closing_instructions'], slides_instructions['path_to_banner_image'])
-# clip.write_videofile(os.path.abspath(current_dir + '/../sample-data/closing.mp4'), codec="libx264", audio_codec="aac", fps=24)
+clip = vidpro.create_instructions_clip(10, slides_instructions['closing_instructions'], slides_instructions['path_to_banner_image'])
+clip.write_videofile(os.path.abspath(current_dir + '/../sample-data/closing.mp4'), codec="libx264", audio_codec="aac", fps=24)
 
-intro = vidpro.create_instructions_clip(10, slides_instructions['opening_instructions'], slides_instructions['path_to_banner_image'])
-session = vidpro.create_session_clip(10, vidpro.Utils.prepare_session_information({
-  'session_title': 'Title',
-  'session_id': 'Session ID',
-  'session_short': 'WP',
-  'session_start': '2024-12-4 13:10',
-  'session_end': '2024-12-4 14:10',
-  # 'papers': [
-  #   {
-  #     'paper_id': 'Paper ID',
-  #     'paper_title': 'Paper Title',
-  #     'video_url': 'Video URL'
-  #   }
-  # ]
-}, times_info), slides_instructions['path_to_banner_image'])
+# intro = vidpro.create_instructions_clip(10, slides_instructions['opening_instructions'], slides_instructions['path_to_banner_image'])
+# session = vidpro.create_session_clip(10, vidpro.Utils.prepare_session_information({
+#   'session_title': 'Title',
+#   'session_id': 'Session ID',
+#   'session_short': '24A',
+#   'session_start': '2024-12-4 13:10',
+#   'session_end': '2024-12-4 14:10',
+#   # 'papers': [
+#   #   {
+#   #     'paper_id': 'Paper ID',
+#   #     'paper_title': 'Paper Title',
+#   #     'video_url': 'Video URL'
+#   #   }
+#   # ]
+# }, times_info), slides_instructions['path_to_banner_image'])
 
-intro_music = AudioFileClip(slides_instructions['path_to_intro_audio']).subclip(0, 20)
-intro_music = intro_music.fx(afx.audio_normalize).audio_fadein(4).audio_fadeout(2)
+# intro_music = AudioFileClip(slides_instructions['path_to_intro_audio']).subclip(0, 20)
+# intro_music = intro_music.fx(afx.audio_normalize).audio_fadein(4).audio_fadeout(2)
 
-intro_video = concatenate_videoclips([session, intro], method='compose').set_audio(intro_music)
-intro_video.write_videofile(os.path.abspath(current_dir + '/../sample-data/WP-intro.mp4'), codec="libx264", audio_codec="aac", fps=24)
+# intro_video = concatenate_videoclips([session, intro], method='compose').set_audio(intro_music)
+# intro_video.write_videofile(os.path.abspath(current_dir + '/../sample-data/24A-intro.mp4'), codec="libx264", audio_codec="aac", fps=24)
